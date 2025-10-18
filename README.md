@@ -20,4 +20,4 @@ O **TinyLinks** é um microserviço completo de encurtamento de URLs que demonst
 - ✅ **Microservices Architecture** - Arquitetura de microsserviços
 
 ## Detalhes técnicos
-> Na em `urlshortener` tem o readme.md com ampliação técnica.
+> Em `urlshortener` tem o readme.md com ampliação técnica.
