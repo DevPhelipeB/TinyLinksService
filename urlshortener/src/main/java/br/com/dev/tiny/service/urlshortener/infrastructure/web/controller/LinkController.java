@@ -3,6 +3,7 @@ package br.com.dev.tiny.service.urlshortener.infrastructure.web.controller;
 import br.com.dev.tiny.service.urlshortener.application.dto.CreateLinkRequest;
 import br.com.dev.tiny.service.urlshortener.application.dto.LinkResponse;
 import br.com.dev.tiny.service.urlshortener.application.service.LinkApplicationService;
+import br.com.dev.tiny.service.urlshortener.infrastructure.config.UrlUtils;
 
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
@@ -25,23 +26,13 @@ import static org.springframework.http.HttpStatus.*;
 public class LinkController {
     
     private static final Logger logger = LoggerFactory.getLogger(LinkController.class);
+
     private final LinkApplicationService applicationService;
     
     public LinkController(LinkApplicationService applicationService) {
         this.applicationService = applicationService;
     }
     
-    /** TODO - Criar classe do utilitário
-     * Utilitário para construir URL base dos links encurtados.
-     */
-    private static String buildBaseUrl(HttpServletRequest request) {
-        String scheme = request.getHeader("X-Forwarded-Proto");
-        String host = request.getHeader("X-Forwarded-Host");
-        if (scheme != null && host != null) {
-            return scheme + "://" + host;
-        }
-        return request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort();
-    }
 
     @PostMapping("/links")
     @RateLimiter(name = "writeLimiter", fallbackMethod = "writeFallback")
@@ -49,7 +40,7 @@ public class LinkController {
         logger.info("Criando novo link para usuário: {} com URL: {}", userId, request.originalUrl());
         
         try {
-            String baseUrl = buildBaseUrl(httpRequest);
+            String baseUrl = UrlUtils.buildBaseUrl(httpRequest);
             LinkResponse response = applicationService.createLink(request, userId, baseUrl);
             
             logger.info("Link criado com sucesso: código={}, urlCurta={}, usuário={}", 
@@ -73,7 +64,7 @@ public class LinkController {
         logger.info("Listando links para usuário: {}, página: {}, tamanho: {}", userId, page, size);
         
         try {
-            String baseUrl = buildBaseUrl(httpRequest);
+            String baseUrl = UrlUtils.buildBaseUrl(httpRequest);
             Page<LinkResponse> response = applicationService.listUserLinks(userId, PageRequest.of(page, size), baseUrl);
             
             logger.info("Links listados com sucesso: usuário={}, totalElementos={}, totalPaginas={}", 
