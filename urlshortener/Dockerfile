@@ -1,17 +1,18 @@
 # Stage de desenvolvimento
 FROM eclipse-temurin:21-jdk-alpine AS builder
 
+# Instalar Maven
+RUN apk add --no-cache maven
+
 WORKDIR /app
 
 COPY pom.xml .
-COPY .mvn .mvn
-COPY mvnw .
 
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B
 
 COPY src src
 
-RUN ./mvnw clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Stage de produção
 FROM eclipse-temurin:21-jre-alpine AS runtime
@@ -23,7 +24,8 @@ RUN addgroup -g 1001 -S appgroup && \
 
 WORKDIR /app
 
-COPY --from=builder /app/target/*.jar app.jar
+# Copiar o JAR específico gerado pelo Spring Boot
+COPY --from=builder /app/target/urlshortener-*.jar app.jar
 
 RUN mkdir -p /app/logs && \
     chown -R appuser:appgroup /app
