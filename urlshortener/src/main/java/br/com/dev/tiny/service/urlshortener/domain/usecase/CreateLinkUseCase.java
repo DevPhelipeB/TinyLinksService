@@ -6,7 +6,9 @@ import br.com.dev.tiny.service.urlshortener.domain.port.CodeGeneratorPort;
 import br.com.dev.tiny.service.urlshortener.domain.port.QuotaValidatorPort;
 
 import java.time.Instant;
+import org.springframework.stereotype.Component;
 
+@Component
 public class CreateLinkUseCase {
     
     private final LinkRepositoryPort linkRepository;

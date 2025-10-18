@@ -2,7 +2,9 @@ package br.com.dev.tiny.service.urlshortener.domain.usecase;
 
 import br.com.dev.tiny.service.urlshortener.domain.entity.Link;
 import br.com.dev.tiny.service.urlshortener.domain.port.LinkRepositoryPort;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ResolveLinkUseCase {
     
     private final LinkRepositoryPort linkRepository;

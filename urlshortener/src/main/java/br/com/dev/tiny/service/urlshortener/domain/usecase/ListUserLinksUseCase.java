@@ -5,7 +5,9 @@ import br.com.dev.tiny.service.urlshortener.domain.port.LinkRepositoryPort;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ListUserLinksUseCase {
     
     private final LinkRepositoryPort linkRepository;
