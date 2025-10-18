@@ -3,6 +3,7 @@ package br.com.dev.tiny.service.urlshortener.infrastructure.web.controller;
 import br.com.dev.tiny.service.urlshortener.application.dto.CreateLinkRequest;
 import br.com.dev.tiny.service.urlshortener.application.dto.LinkResponse;
 import br.com.dev.tiny.service.urlshortener.application.service.LinkApplicationService;
+
 import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,10 +18,6 @@ import java.net.URI;
 
 import static org.springframework.http.HttpStatus.*;
 
-/**
- * Controller REST para operações de links.
- * Interface Adapter que conecta a camada web com a aplicação.
- */
 @RestController
 @RequestMapping("/api/v1")
 public class LinkController {
@@ -45,28 +42,21 @@ public class LinkController {
 
     @PostMapping("/links")
     @RateLimiter(name = "writeLimiter", fallbackMethod = "writeFallback")
-    public LinkResponse createLink(@Valid @RequestBody CreateLinkRequest request,
-                                 @RequestHeader(value = "X-User-Id", required = false) String userId,
-                                 HttpServletRequest httpRequest) {
+    public LinkResponse createLink(@Valid @RequestBody CreateLinkRequest request, @RequestHeader(value = "X-User-Id", required = false) String userId, HttpServletRequest httpRequest) {
         return applicationService.createLink(request, userId, buildBaseUrl(httpRequest));
     }
     
-    public LinkResponse writeFallback(CreateLinkRequest request, String userId, 
-                                    HttpServletRequest httpRequest, RequestNotPermitted ex) {
+    public LinkResponse writeFallback(CreateLinkRequest request, String userId, HttpServletRequest httpRequest, RequestNotPermitted requestNotPermitted) {
         throw new ResponseStatusException(TOO_MANY_REQUESTS, "Write rate exceeded");
     }
 
     @GetMapping("/links")
     @RateLimiter(name = "readLimiter", fallbackMethod = "readFallbackPage")
-    public Page<LinkResponse> listUserLinks(@RequestHeader(value = "X-User-Id", required = false) String userId,
-                                          @RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "10") int size,
-                                          HttpServletRequest httpRequest) {
+    public Page<LinkResponse> listUserLinks(@RequestHeader(value = "X-User-Id", required = false) String userId, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size, HttpServletRequest httpRequest) {
         return applicationService.listUserLinks(userId, PageRequest.of(page, size), buildBaseUrl(httpRequest));
     }
     
-    public Page<LinkResponse> readFallbackPage(String userId, int page, int size, 
-                                             HttpServletRequest httpRequest, RequestNotPermitted ex) {
+    public Page<LinkResponse> readFallbackPage(String userId, int page, int size, HttpServletRequest httpRequest, RequestNotPermitted requestNotPermitted) {
         throw new ResponseStatusException(TOO_MANY_REQUESTS, "Read rate exceeded");
     }
 
@@ -77,19 +67,18 @@ public class LinkController {
         return ResponseEntity.status(FOUND).location(URI.create(targetUrl)).build();
     }
     
-    public ResponseEntity<Void> readFallbackRedirect(String code, RequestNotPermitted ex) {
+    public ResponseEntity<Void> readFallbackRedirect(String code, RequestNotPermitted requestNotPermitted) {
         return ResponseEntity.status(TOO_MANY_REQUESTS).build();
     }
 
     @DeleteMapping("/links/{code}")
     @RateLimiter(name = "writeLimiter", fallbackMethod = "writeFallbackDelete")
-    public ResponseEntity<Void> deleteLink(@PathVariable String code,
-                                         @RequestHeader(value = "X-User-Id", required = false) String userId) {
+    public ResponseEntity<Void> deleteLink(@PathVariable String code, @RequestHeader(value = "X-User-Id", required = false) String userId) {
         applicationService.deleteLink(code, userId);
         return ResponseEntity.noContent().build();
     }
     
-    public ResponseEntity<Void> writeFallbackDelete(String code, String userId, RequestNotPermitted ex) {
+    public ResponseEntity<Void> writeFallbackDelete(String code, String userId, RequestNotPermitted requestNotPermitted) {
         return ResponseEntity.status(TOO_MANY_REQUESTS).build();
     }
 }
