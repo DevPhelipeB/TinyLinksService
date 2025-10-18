@@ -56,12 +56,12 @@ O **TinyLinks** é um microserviço completo de encurtamento de URLs que demonst
 
 ### **Endpoints da API**
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `POST` | `/tinyapp/api/v1/links` | Criar link encurtado |
+| Método | Endpoint | Descrição              |
+|--------|----------|------------------------|
+| `POST` | `/tinyapp/api/v1/links` | Criar link encurtado   |
 | `GET` | `/tinyapp/api/v1/links` | Listar links do usuário |
 | `GET` | `/tinyapp/r/{code}` | Resolver e redirecionar |
-| `DELETE` | `/tinyapp/api/v1/links/{code}` | Excluir link |
+| `DELETE` | `/tinyapp/api/v1/links/{code}` | Excluir lógica do link |
 
 ## Tecnologias Utilizadas
 
@@ -117,6 +117,9 @@ mvn spring-boot:run
 ```
 http://localhost:8077/tinyapp/swagger-ui.html
 ```
+
+## Observação
+> *Foi adicionado os contexto na url do serviço apenas por boa prática, porém o correto de caso de uso seria não ter para ficar um link mínimo de redirect.*
 
 ## Testes
 
