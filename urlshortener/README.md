@@ -50,7 +50,7 @@ O **TinyLinks** é um microserviço completo de encurtamento de URLs que demonst
 - **Encurtamento de URLs** - Converte URLs longas em códigos curtos
 - **Contagem de Visitas** - Rastreia acessos aos links
 - **Gestão por Usuário** - Links organizados por usuário
-- **🗑Exclusão Lógica** - Soft delete para preservar histórico
+- **Exclusão Lógica** - Soft delete para preservar histórico
 - **Quota Diária** - Limite de criação por usuário/dia
 - **Rate Limiting** - Proteção contra abuso
 

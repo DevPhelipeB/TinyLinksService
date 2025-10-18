@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "br.com.dev.tiny.service.urlshortener.infrastructure.web.controller")
 public class GlobalExceptionHandler {
     
     @ExceptionHandler(ResolveLinkUseCase.LinkNotFoundException.class)

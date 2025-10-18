@@ -11,7 +11,7 @@ public record LinkResponse(
     long visits
 ) {
     public static LinkResponse fromEntity(Link link, String baseUrl) {
-        String shortUrl = String.format(Locale.ROOT, "%s/tinyapp/r/%s", baseUrl, link.getCode());
+        String shortUrl = String.format(Locale.ROOT, "%s/tinyapp/api/v1/r/%s", baseUrl, link.getCode());
         return new LinkResponse(link.getCode(), shortUrl, link.getOriginalUrl(), link.getVisits());
     }
 }
