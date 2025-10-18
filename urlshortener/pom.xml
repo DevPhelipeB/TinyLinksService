@@ -34,6 +34,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-mongodb</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>org.springframework.session</groupId>
 			<artifactId>spring-session-data-mongodb</artifactId>
 		</dependency>
@@ -62,46 +67,46 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		 <dependency>
+		<dependency>
 			<groupId>io.github.resilience4j</groupId>
 			<artifactId>resilience4j-spring-boot3</artifactId>
 			<version>${resilience4j.version}</version>
-		  </dependency>
+		</dependency>
 	
-		  <dependency>
+		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>${springdoc.version}</version>
-		  </dependency>
+		</dependency>
+
 	</dependencies>
 
 	<build>
 		<plugins>
+		  <plugin>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-maven-plugin</artifactId>
+			<configuration>
+			  <mainClass>br.com.dev.tiny.service.urlshortener.TinyLinksApplication</mainClass>
+			  <image>
+				<name>tinylinks:latest</name>
+			  </image>
+			  <layers enabled="true"/>
+			</configuration>
+		  </plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<excludes>
-						<exclude>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</exclude>
-					</excludes>
+					<source>21</source>
+					<target>21</target>
+					<compilerArgs>
+						<arg>--enable-preview</arg>
+						<arg>-parameters</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	  </build>
 
 </project>

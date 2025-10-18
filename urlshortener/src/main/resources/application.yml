@@ -1,0 +1,34 @@
+server:
+  port: 8077
+  servlet:
+    context-path: /tinyapp
+
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/tinylinks}
+  jackson:
+    time-zone: America/Sao_Paulo
+
+resilience4j:
+  ratelimiter:
+    instances:
+      readLimiter:
+        limitForPeriod: 10
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+      writeLimiter:
+        limitForPeriod: 3
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+
+tinylinks:
+  quota:
+    perUserPerDay: 200
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info
+
