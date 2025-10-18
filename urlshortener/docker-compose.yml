@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: tinylinks-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: tinylinks
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./docker/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - tinylinks-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # TinyLinks Application
+  tinylinks-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tinylinks-app
+    restart: unless-stopped
+    environment:
+      # Spring Profiles
+      SPRING_PROFILES_ACTIVE: docker
+      
+      # MongoDB Configuration
+      SPRING_DATA_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/tinylinks?authSource=admin
+      
+      # Application Configuration
+      TINYLINKS_QUOTA_PERUSERPERDAY: 200
+      
+      # Logging Configuration
+      LOGGING_LEVEL_BR_COM_DEV_TINY_SERVICE_URLSHORTENER: INFO
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB: INFO
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_DATA_MONGODB: INFO
+      
+      # Micrometer Tracing
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: 1.0
+      MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: http://zipkin:9411/api/v2/spans
+      
+      # Server Configuration
+      SERVER_PORT: 8080
+      SERVER_SERVLET_CONTEXT_PATH: /tinyapp
+      
+    ports:
+      - "8080:8080"
+    volumes:
+      - app_logs:/app/logs
+    networks:
+      - tinylinks-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/tinyapp/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Zipkin for Distributed Tracing (Optional)
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: tinylinks-zipkin
+    restart: unless-stopped
+    ports:
+      - "9411:9411"
+    networks:
+      - tinylinks-network
+    environment:
+      - STORAGE_TYPE=mem
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: tinylinks-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    networks:
+      - tinylinks-network
+    depends_on:
+      - tinylinks-app
+
+# Volumes para persistência de dados
+volumes:
+  mongodb_data:
+    driver: local
+  app_logs:
+    driver: local
+
+# Rede customizada para comunicação entre containers
+networks:
+  tinylinks-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
