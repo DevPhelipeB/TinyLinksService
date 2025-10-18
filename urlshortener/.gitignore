@@ -123,7 +123,6 @@ $RECYCLE.BIN/
 *~
 
 # ---- Spring / App Runtime ----
-# if you generate logs locally
 logs/
 *.log.*
 # local env files
@@ -140,7 +139,6 @@ coverage/
 .site/
 
 # ---- Docker / Podman ----
-# Ignore local images/artefacts you might export
 *.tar
 # Compose overrides
 docker-compose.override.yml

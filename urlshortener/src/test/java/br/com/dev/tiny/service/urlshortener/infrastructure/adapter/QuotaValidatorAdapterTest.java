@@ -1,6 +1,7 @@
 package br.com.dev.tiny.service.urlshortener.infrastructure.adapter;
 
 import br.com.dev.tiny.service.urlshortener.domain.port.LinkRepositoryPort;
+import br.com.dev.tiny.service.urlshortener.infrastructure.config.QuotaProperties;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -21,12 +21,15 @@ class QuotaValidatorAdapterTest {
     @Mock
     private LinkRepositoryPort linkRepository;
 
+    @Mock
+    private QuotaProperties quotaProperties;
+
     private QuotaValidatorAdapter quotaValidatorAdapter;
 
     @BeforeEach
     void setUp() {
-        quotaValidatorAdapter = new QuotaValidatorAdapter(linkRepository);
-        ReflectionTestUtils.setField(quotaValidatorAdapter, "perUserPerDay", 200);
+        when(quotaProperties.getPerUserPerDay()).thenReturn(200);
+        quotaValidatorAdapter = new QuotaValidatorAdapter(linkRepository, quotaProperties);
     }
 
     @Test

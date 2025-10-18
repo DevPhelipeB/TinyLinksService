@@ -44,6 +44,7 @@ O **TinyLinks** é um microserviço completo de encurtamento de URLs que demonst
 - **`QuotaValidatorAdapter`** - Implementa validação de quota diária
 
 ## Funcionalidades
+![tinylinks-service-sequence-diagram.png](tinylinks-service-sequence-diagram.png)
 
 ### **Recursos Principais**
 
