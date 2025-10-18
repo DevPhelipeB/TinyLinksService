@@ -84,7 +84,6 @@ Após iniciar os serviços:
 | **Zipkin** | http://localhost:9411 | Distributed Tracing |
 | **MongoDB** | mongodb://localhost:27017 | Banco de dados |
 
-
 ## Monitoramento
 
 ### Logs
@@ -109,7 +108,6 @@ curl http://localhost:8080/tinyapp/actuator/health
 ### Métricas
 - **Actuator**: http://localhost:8080/tinyapp/actuator/metrics
 - **Zipkin**: http://localhost:9411
-
 
 ## Troubleshooting
 
