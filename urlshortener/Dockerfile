@@ -4,15 +4,34 @@ FROM eclipse-temurin:21-jdk-alpine AS builder
 # Instalar Maven
 RUN apk add --no-cache maven
 
+# Configurar Maven para otimização
+ENV MAVEN_OPTS="-Xmx1g -XX:+UseG1GC -XX:+UseStringDeduplication"
+ENV MAVEN_CONFIG=/root/.m2
+
 WORKDIR /app
 
+# Copiar apenas o pom.xml primeiro para aproveitar cache de dependências
 COPY pom.xml .
 
-RUN mvn dependency:go-offline -B
+# Download de dependências com cache otimizado e configurações de performance
+RUN mvn dependency:go-offline -B \
+    -Dmaven.repo.local=/root/.m2/repository \
+    -Dmaven.artifact.threads=4 \
+    -Dmaven.wagon.http.retryHandler.count=3 \
+    -Dmaven.wagon.http.retryHandler.requestSentEnabled=true
 
+# Copiar código fonte
 COPY src src
 
-RUN mvn clean package -DskipTests
+# Build otimizado com paralelização, skip de testes e configurações de performance
+RUN mvn clean package -DskipTests \
+    -T 2C \
+    -Dmaven.repo.local=/root/.m2/repository \
+    -Dmaven.compiler.fork=true \
+    -Dmaven.compiler.maxmem=1g \
+    -Dmaven.test.skip=true \
+    -Dmaven.javadoc.skip=true \
+    -Dmaven.source.skip=true
 
 # Stage de produção
 FROM eclipse-temurin:21-jre-alpine AS runtime

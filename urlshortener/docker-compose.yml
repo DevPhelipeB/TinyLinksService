@@ -34,7 +34,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       
       # MongoDB Configuration
-      SPRING_DATA_MONGODB_URI: mongodb://admin:admin123@mongodb:27017/tinylinks?authSource=admin
+      SPRING_DATA_MONGODB_URI: mongodb://tinylinks_user:tinylinks_password@mongodb:27017/tinylinks?authSource=tinylinks
       
       # Application Configuration
       TINYLINKS_QUOTA_PERUSERPERDAY: 200
@@ -101,6 +101,8 @@ volumes:
   mongodb_data:
     driver: local
   app_logs:
+    driver: local
+  maven_cache:
     driver: local
 
 # Rede customizada para comunicação entre containers

@@ -18,20 +18,23 @@ cd urlshortener
 
 ### 2. Executar com PowerShell (Recomendado)
 ```powershell
-# Modo desenvolvimento
+# Modo desenvolvimento (recomendado para desenvolvimento)
 .\scripts\start.ps1 dev
 
 # Modo produção
 .\scripts\start.ps1 prod
 
-# Parar serviços
+# Parar todos os serviços
 .\scripts\start.ps1 stop
 
-# Ver logs
+# Ver logs em tempo real
 .\scripts\start.ps1 logs
 
-# Ver status
+# Ver status dos containers
 .\scripts\start.ps1 status
+
+# Limpar containers e volumes
+.\scripts\start.ps1 clean
 ```
 
 ## Arquitetura dos Containers
@@ -55,7 +58,7 @@ cd urlshortener
 
 #### Desenvolvimento
 ```yaml
-SPRING_PROFILES_ACTIVE: dev,docker
+SPRING_PROFILES_ACTIVE: dev
 TINYLINKS_QUOTA_PERUSERPERDAY: 1000
 LOGGING_LEVEL_BR_COM_DEV_TINY_SERVICE_URLSHORTENER: DEBUG
 ```
@@ -131,9 +134,14 @@ taskkill /PID <PID> /F
 # Verificar se MongoDB está rodando
 podman logs tinylinks-mongodb
 
+# Verificar se usuário foi criado
+podman exec tinylinks-mongodb mongosh -u admin -p admin123 --authenticationDatabase admin --eval "db.getSiblingDB('tinylinks').getUsers()"
+
 # Reiniciar MongoDB
 podman restart tinylinks-mongodb
 ```
+
+**Nota**: O script agora aguarda automaticamente o MongoDB inicializar completamente antes de iniciar a aplicação.
 
 #### 4. Aplicação não inicia
 ```bash
@@ -166,6 +174,19 @@ podman exec tinylinks-mongodb mongodump --out /backup
 # Restore
 podman exec tinylinks-mongodb mongorestore /backup
 ```
+
+## Performance
+
+### Tempos Esperados
+- **Primeira execução**: 3-5 minutos (download de dependências)
+- **Execuções subsequentes**: 1-2 minutos (usando cache)
+- **Limpeza completa**: 30-60 segundos
+
+### Otimizações Implementadas
+- Cache de dependências Maven
+- Dockerfile multi-stage otimizado
+- Aguardo inteligente para MongoDB
+- Verificação de saúde dos serviços
 
 ---
 

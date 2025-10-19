@@ -1,4 +1,4 @@
-﻿# Script PowerShell para iniciar o TinyLinks Service com Podman no Windows
+﻿# Script PowerShell para iniciar o TinyLinks Service
 # Uso: .\scripts\start.ps1 [dev|prod|stop|logs|status|clean]
 
 param(
@@ -9,6 +9,11 @@ param(
 
 # Configurações
 $ErrorActionPreference = "Stop"
+
+# Configurar variáveis de ambiente para otimização
+$env:COMPOSE_DOCKER_CLI_BUILD = "0"
+$env:DOCKER_BUILDKIT = "0"
+$env:BUILDKIT_PROGRESS = "plain"
 
 # Função para imprimir mensagens
 function Write-Info {
@@ -105,9 +110,11 @@ function Clear-Containers {
 }
 
 # Função para construir a aplicação
-function Build-App {
+function Invoke-BuildApp {
     Write-Info "Construindo a aplicação..."
-    & $composeCmd build --no-cache tinylinks-app
+    
+    # Build com cache otimizado
+    & $composeCmd build tinylinks-app
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao construir a aplicação"
     }
@@ -118,16 +125,40 @@ function Start-Development {
     Write-Info "Iniciando em modo DESENVOLVIMENTO..."
     
     # Iniciar MongoDB e Zipkin primeiro
-    & $composeCmd --profile dev up -d mongodb zipkin
+    Write-Info "Iniciando MongoDB e Zipkin..."
+    & $composeCmd up -d mongodb zipkin
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao iniciar MongoDB e Zipkin"
     }
     
-    Write-Info "Aguardando MongoDB inicializar..."
-    Start-Sleep -Seconds 15
+    # Aguardar MongoDB inicializar completamente
+    Write-Info "Aguardando MongoDB inicializar e configurar usuário..."
+    Start-Sleep -Seconds 30
+    
+    # Verificar se MongoDB está pronto
+    Write-Info "Verificando se MongoDB está pronto..."
+    $maxAttempts = 10
+    $attempt = 0
+    do {
+        $attempt++
+        try {
+            $null = Invoke-WebRequest -Uri "http://localhost:27017" -TimeoutSec 5 -ErrorAction SilentlyContinue
+            Write-Info "✓ MongoDB está pronto"
+            break
+        }
+        catch {
+            Write-Info "Aguardando MongoDB... (tentativa $attempt/$maxAttempts)"
+            Start-Sleep -Seconds 5
+        }
+    } while ($attempt -lt $maxAttempts)
+    
+    if ($attempt -eq $maxAttempts) {
+        Write-Warning "MongoDB pode não estar totalmente pronto, mas continuando..."
+    }
     
     # Iniciar aplicação
-    & $composeCmd --profile dev up -d tinylinks-app
+    Write-Info "Iniciando aplicação..."
+    & $composeCmd up -d tinylinks-app
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao iniciar a aplicação"
     }
@@ -143,7 +174,8 @@ function Start-Development {
 function Start-Production {
     Write-Info "Iniciando em modo PRODUÇÃO..."
     
-    & $composeCmd --profile production up -d
+    # Iniciar todos os serviços
+    & $composeCmd up -d
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao iniciar serviços em modo produção"
     }
@@ -161,7 +193,7 @@ function Test-ServicesHealth {
     
     # Verificar MongoDB
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:27017" -TimeoutSec 5 -ErrorAction SilentlyContinue
+        $null = Invoke-WebRequest -Uri "http://localhost:27017" -TimeoutSec 5 -ErrorAction SilentlyContinue
         Write-Info "✓ MongoDB está rodando"
     }
     catch {
@@ -170,7 +202,7 @@ function Test-ServicesHealth {
     
     # Verificar aplicação
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8080/tinyapp/actuator/health" -TimeoutSec 5 -ErrorAction SilentlyContinue
+        $null = Invoke-WebRequest -Uri "http://localhost:8080/tinyapp/actuator/health" -TimeoutSec 5 -ErrorAction SilentlyContinue
         Write-Info "✓ TinyLinks App está rodando"
     }
     catch {
@@ -179,7 +211,7 @@ function Test-ServicesHealth {
     
     # Verificar Zipkin
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:9411" -TimeoutSec 5 -ErrorAction SilentlyContinue
+        $null = Invoke-WebRequest -Uri "http://localhost:9411" -TimeoutSec 5 -ErrorAction SilentlyContinue
         Write-Info "✓ Zipkin está rodando"
     }
     catch {
@@ -234,6 +266,7 @@ function Show-Help {
     Write-Host "  .\scripts\start.ps1 dev" -ForegroundColor White
     Write-Host "  .\scripts\start.ps1 prod" -ForegroundColor White
     Write-Host "  .\scripts\start.ps1 stop" -ForegroundColor White
+    Write-Host "  .\scripts\start.ps1 logs" -ForegroundColor White
 }
 
 # Função principal
@@ -255,7 +288,7 @@ function Main {
         "dev" {
             try {
                 Clear-Containers
-                Build-App
+                Invoke-BuildApp
                 Start-Development
                 Show-Urls
             }
@@ -267,7 +300,7 @@ function Main {
         "prod" {
             try {
                 Clear-Containers
-                Build-App
+                Invoke-BuildApp
                 Start-Production
                 Show-Urls
             }

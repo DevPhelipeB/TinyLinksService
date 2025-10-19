@@ -1,7 +1,16 @@
-# Maven
+# Arquivos de build e cache
 target/
+.mvn/
+.m2/
+*.jar
+*.war
+*.ear
 
-# IDE
+# Logs
+logs/
+*.log
+
+# IDEs
 .idea/
 .vscode/
 *.iml
@@ -12,37 +21,28 @@ target/
 .DS_Store
 Thumbs.db
 
-# Logs
-logs/
-*.log
-
 # Git
 .git/
 .gitignore
 
 # Docker
-Dockerfile
-docker-compose.yml
+Dockerfile*
+docker-compose*.yml
 .dockerignore
 
 # Documentação
 README.md
-LOGGING.md
 *.md
 
-# Testes
-src/test/
+# Scripts
+scripts/
 
 # Arquivos temporários
 *.tmp
 *.temp
 *.swp
 *.swo
-*~
 
-# Node modules (se houver)
-node_modules/
-
-# Arquivos de backup
-*.bak
-*.backup
+# Arquivos de configuração local
+application-local.yml
+application-dev.yml
